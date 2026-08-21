@@ -660,7 +660,7 @@ function pauseGame() {
   document.getElementById("pause-score").textContent =
     "Score: " + Math.floor(score);
   elements.pauseScreen.classList.remove("hidden");
-  requestAnimationFrame(() => elements.resumeButton.focus({ preventScroll: true }));
+  elements.resumeButton.focus({ preventScroll: true });
 }
 
 function resumeGame() {
