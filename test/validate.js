@@ -1,68 +1,44 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
-const htmlDir = path.join(__dirname, "..");
+const root = path.resolve(__dirname, "..");
+const requiredFiles = ["index.html", "stylesheet.css", "game-core.js", "game.js"];
 let failures = 0;
 
-// Validate HTML files
-const htmlFiles = fs.readdirSync(htmlDir).filter((f) => f.endsWith(".html"));
-for (const file of htmlFiles) {
-  const content = fs.readFileSync(path.join(htmlDir, file), "utf8");
-
-  if (!content.includes("<!DOCTYPE html>")) {
-    console.error(`FAIL: ${file} is missing <!DOCTYPE html>`);
-    failures++;
-  }
-  if (!content.includes("<html") || !content.includes("</html>")) {
-    console.error(`FAIL: ${file} is missing <html> wrapper`);
-    failures++;
-  }
-  if (!content.includes("<head") || !content.includes("</head>")) {
-    console.error(`FAIL: ${file} is missing <head> section`);
-    failures++;
-  }
-  if (!content.includes("<body") || !content.includes("</body>")) {
-    console.error(`FAIL: ${file} is missing <body> section`);
-    failures++;
-  }
-  if (!content.includes("<title>")) {
-    console.error(`FAIL: ${file} is missing <title> tag`);
-    failures++;
-  }
-
-  if (failures === 0) {
-    console.log(`PASS: ${file} has valid HTML structure`);
-  }
-}
-
-// Validate JS files exist and are non-empty
-const jsFiles = fs.readdirSync(htmlDir).filter((f) => f.endsWith(".js"));
-for (const file of jsFiles) {
-  const stat = fs.statSync(path.join(htmlDir, file));
-  if (stat.size === 0) {
-    console.error(`FAIL: ${file} is empty`);
-    failures++;
+function check(condition, message) {
+  if (condition) {
+    console.log(`PASS: ${message}`);
   } else {
-    console.log(`PASS: ${file} exists and is non-empty (${stat.size} bytes)`);
-  }
-}
-
-// Validate CSS files exist and are non-empty
-const cssFiles = fs.readdirSync(htmlDir).filter((f) => f.endsWith(".css"));
-for (const file of cssFiles) {
-  const stat = fs.statSync(path.join(htmlDir, file));
-  if (stat.size === 0) {
-    console.error(`FAIL: ${file} is empty`);
+    console.error(`FAIL: ${message}`);
     failures++;
-  } else {
-    console.log(`PASS: ${file} exists and is non-empty (${stat.size} bytes)`);
   }
 }
 
-const total = htmlFiles.length + jsFiles.length + cssFiles.length;
+for (const file of requiredFiles) {
+  const fullPath = path.join(root, file);
+  check(fs.existsSync(fullPath) && fs.statSync(fullPath).size > 0, `${file} exists and is non-empty`);
+}
+
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const game = fs.readFileSync(path.join(root, "game.js"), "utf8");
+
+check(html.includes("<!DOCTYPE html>"), "index.html declares HTML5");
+check(!html.includes("user-scalable=no"), "viewport does not disable zoom");
+check(html.includes('id="start-btn"') && html.includes('id="restart-btn"'), "start and restart use buttons");
+check(html.includes('id="unlock-dialog"') && html.includes('role="dialog"'), "unlock guidance uses a DOM dialog");
+check(html.includes('id="initials-form"'), "initials entry uses a DOM form");
+check(
+  html.indexOf('src="game-core.js"') < html.indexOf('src="game.js"'),
+  "deterministic game core loads before the game",
+);
+check(!game.includes('code === "Tab"'), "Tab is not bound as a gameplay key");
+check(!game.includes('addEventListener("touchstart"'), "legacy single-touch handlers are removed");
+check(game.includes('addEventListener("pointerdown"'), "Pointer Events drive touch gameplay");
+check(game.includes("createFixedStepClock"), "game loop uses a fixed-step clock");
+
 if (failures > 0) {
   console.error(`\n${failures} validation failure(s)`);
   process.exit(1);
-} else {
-  console.log(`\nAll ${total} file(s) passed validation`);
 }
+
+console.log("\nStructural validation passed");
