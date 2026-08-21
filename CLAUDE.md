@@ -14,7 +14,7 @@ No frameworks. No build step. Just `game.js`, `index.html`, and `stylesheet.css`
 - **Language**: Vanilla ES6+ JavaScript (~2,900 lines in game.js)
 - **Storage**: localStorage for leaderboard persistence
 - **Styling**: Pure CSS with neon glow effects and responsive media queries
-- **Testing**: Node.js file validation (`npm test`)
+- **Testing**: Node unit tests plus Playwright browser smoke tests
 - **Deployment**: GitHub Pages via GitHub Actions (static site)
 
 ---
@@ -23,10 +23,11 @@ No frameworks. No build step. Just `game.js`, `index.html`, and `stylesheet.css`
 
 ```
 ├── game.js            # All game logic, physics, rendering, state management
+├── game-core.js       # Deterministic timing, collision, and pointer-input primitives
 ├── index.html         # Canvas element, UI overlays, touch controls
 ├── stylesheet.css     # Neon-themed styling, animations, responsive layout
 ├── package.json       # npm scripts and htmlhint dev dependency
-├── test/validate.js   # Basic structural validation tests
+├── test/              # Structural, unit, and Playwright browser tests
 └── .github/workflows/ # GitHub Actions for Pages deployment
 ```
 
@@ -51,7 +52,7 @@ The game unlocks mechanics *before* ramping speed, so players learn each system:
 | 1200 | Jetpack/Hover pack (fuel-managed) |
 | 1500+ | Speed tiers: HIGH SPEED → DANGER ZONE → OVERDRIVE |
 
-Each unlock pauses the game briefly with a notification and 3-second countdown.
+Each unlock shows an accessible tutorial once. Later runs use a brief HUD notification without interrupting play.
 
 ### Obstacle Types
 - **Traffic barriers, bollards, server racks** — ground obstacles
@@ -71,7 +72,7 @@ Each unlock pauses the game briefly with a notification and 3-second countdown.
 - Visual fuel meter in HUD
 
 ### Shooting System
-- **Tab** key (desktop) or right touch zone (mobile) fires projectiles
+- **X/K** keys (desktop) or right touch zone (mobile) fire projectiles
 - 12-frame cooldown between shots
 - Destroys drones for 50 bonus points each
 - Muzzle flash particles and kill popup text
@@ -96,8 +97,9 @@ Each unlock pauses the game briefly with a notification and 3-second countdown.
 
 ### Mobile Support
 - Full touch controls (left-top = jump, left-bottom = slide, right = shoot)
-- Portrait/landscape detection with rotation prompt
+- Portrait support with a non-blocking landscape recommendation
 - Responsive canvas scaling
+- Independent Pointer Events for simultaneous jump/slide and shoot input
 - Touch hint labels for first play
 
 ---
@@ -114,9 +116,7 @@ Unlock pauses also use the `"paused"` state with a countdown timer.
 
 ## How the Game Loop Works
 
-```
-gameLoop() → update() + draw() → requestAnimationFrame(gameLoop)
-```
+`requestAnimationFrame` renders the game, while a fixed-timestep clock advances gameplay at 60 simulation steps per second. Multiple updates may run before a render on a slower display, and faster displays may render between updates without changing gameplay speed.
 
 **Update order**: speed scaling → unlock checks → player physics → tunnel updates → obstacle spawning/movement → projectiles → collisions → particles → weather
 
@@ -166,8 +166,12 @@ Built across ~35 commits, roughly in this order:
 # Install dev dependencies (htmlhint)
 npm install
 
-# Run validation tests
+# Run structural and unit tests
 npm test
+
+# Run browser smoke tests (after installing Chromium once)
+npx playwright install --with-deps chromium
+npm run test:browser
 
 # Serve locally (any static server works)
 npx serve .
@@ -178,10 +182,9 @@ npx serve .
 
 ## Known Quirks / Areas for Improvement
 
-- `game.js` is one monolithic file (~2,900 lines). Works fine but could be modularized.
+- `game.js` remains a large rendering/browser module; deterministic primitives now live in `game-core.js`.
 - Obstacle spawn timing uses `Math.random()` checks per frame rather than a proper interval/queue system. Occasionally spawns can cluster.
 - The tunnel system auto-descends the player rather than letting them choose to enter. Could be made optional.
-- No audio/sound effects yet.
 - No persistent online leaderboard — localStorage only.
 
 ---

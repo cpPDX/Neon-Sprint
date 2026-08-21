@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+html {
+    background: #0a0a12;
+}
+
 body {
     background: #0a0a12;
     display: flex;
@@ -13,18 +17,24 @@ body {
     min-height: 100dvh;
     font-family: 'Courier New', 'Lucida Console', monospace;
     color: #e0e0e0;
+    overflow: auto;
+    padding:
+        max(0px, env(safe-area-inset-top))
+        max(0px, env(safe-area-inset-right))
+        max(0px, env(safe-area-inset-bottom))
+        max(0px, env(safe-area-inset-left));
+}
+
+#game-container {
+    position: relative;
+    container-type: size;
+    border: 2px solid #ff00ff44;
+    border-radius: 4px;
     overflow: hidden;
     touch-action: none;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
-}
-
-#game-container {
-    position: relative;
-    border: 2px solid #ff00ff44;
-    border-radius: 4px;
-    overflow: hidden;
     box-shadow:
         0 0 40px rgba(255, 0, 255, 0.15),
         0 0 80px rgba(0, 255, 255, 0.08),
@@ -41,6 +51,12 @@ canvas {
     max-height: 100vh;
     max-height: 100dvh;
     object-fit: contain;
+    touch-action: none;
+}
+
+canvas:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: -5px;
 }
 
 #ui-overlay {
@@ -56,7 +72,7 @@ canvas {
     position: absolute;
     top: 12px;
     right: 16px;
-    font-size: 18px;
+    font-size: clamp(12px, 2.25cqw, 18px);
     font-weight: bold;
     color: #00ffcc;
     text-shadow:
@@ -75,6 +91,8 @@ canvas {
     align-items: center;
     justify-content: center;
     height: 100%;
+    padding: clamp(10px, 2cqh, 22px);
+    overflow: auto;
     background: rgba(8, 8, 24, 0.92);
     backdrop-filter: blur(4px);
     pointer-events: auto;
@@ -89,7 +107,7 @@ canvas {
 #start-screen h1,
 #game-over-screen h1,
 #pause-screen h1 {
-    font-size: 44px;
+    font-size: clamp(26px, 5.5cqw, 48px);
     margin-bottom: 16px;
     color: #ff00ff;
     text-shadow:
@@ -103,7 +121,7 @@ canvas {
 #start-screen p,
 #game-over-screen p,
 #pause-screen p {
-    font-size: 14px;
+    font-size: clamp(10px, 1.75cqw, 15px);
     margin: 4px 0;
     color: #8888aa;
     letter-spacing: 1px;
@@ -131,7 +149,9 @@ kbd {
 
 /* Title taglines */
 .title-tagline {
-    font-size: 10px !important;
+    max-width: 92%;
+    text-align: center;
+    font-size: clamp(8px, 1.25cqw, 11px) !important;
     color: #00ffcc !important;
     opacity: 0.55;
     letter-spacing: 1.5px;
@@ -141,7 +161,7 @@ kbd {
 
 /* Title credit */
 .title-credit {
-    font-size: 9px !important;
+    font-size: clamp(8px, 1.1cqw, 10px) !important;
     color: #555577 !important;
     letter-spacing: 1px;
     margin-top: 12px !important;
@@ -156,6 +176,10 @@ kbd {
     animation: pulse 1.5s ease-in-out infinite;
     letter-spacing: 3px;
     text-transform: uppercase;
+}
+
+.start-action {
+    margin-top: clamp(10px, 2cqh, 20px);
 }
 
 @keyframes pulse {
@@ -213,6 +237,81 @@ kbd {
     pointer-events: auto;
 }
 
+/* Accessible in-game dialogs */
+.modal-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4cqw;
+    background: rgba(0, 0, 0, 0.72);
+    pointer-events: auto;
+}
+
+.modal-panel {
+    width: min(92%, 430px);
+    max-height: 90%;
+    overflow: auto;
+    padding: clamp(14px, 3cqw, 28px);
+    border: 2px solid var(--dialog-color, #00ffcc);
+    border-radius: 4px;
+    background: rgba(8, 8, 24, 0.97);
+    box-shadow: 0 0 24px rgba(0, 255, 204, 0.25);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--dialog-color, #00ffcc) 35%, transparent);
+    text-align: center;
+}
+
+.modal-panel h2 {
+    margin-bottom: clamp(10px, 2cqh, 18px);
+    color: var(--dialog-color, #00ffcc);
+    font-size: clamp(18px, 3.2cqw, 28px);
+    letter-spacing: clamp(1px, 0.45cqw, 4px);
+    text-transform: uppercase;
+}
+
+.modal-panel p,
+.modal-panel label {
+    display: block;
+    margin: 6px 0;
+    color: #ccccdd;
+    font-size: clamp(11px, 1.6cqw, 14px);
+    line-height: 1.45;
+}
+
+#unlock-confirm-btn,
+#initials-form .neon-btn {
+    margin-top: clamp(10px, 2cqh, 20px);
+}
+
+#initials-input {
+    display: block;
+    width: 7ch;
+    margin: 10px auto 0;
+    border: 2px solid #ff00ff;
+    border-radius: 3px;
+    background: #101022;
+    color: #ffffff;
+    font: bold clamp(24px, 4.5cqw, 38px) 'Courier New', monospace;
+    letter-spacing: 0.35em;
+    padding: 6px 4px 6px 0.35em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#initials-help {
+    color: #777799;
+}
+
+#death-reason,
+.death-reason {
+    color: #ff9aab !important;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
 .neon-btn {
     font-family: 'Courier New', 'Lucida Console', monospace;
     font-size: 16px;
@@ -229,12 +328,47 @@ kbd {
     touch-action: manipulation;
 }
 
+#feedback-controls {
+    position: absolute;
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    z-index: 12;
+    display: flex;
+    gap: 6px;
+    pointer-events: auto;
+}
+
+.utility-btn {
+    min-height: 34px;
+    padding: 6px 9px;
+    border: 1px solid rgba(0, 255, 204, 0.45);
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.66);
+    color: #aabbbb;
+    cursor: pointer;
+    font: bold clamp(8px, 1.15cqw, 10px) 'Courier New', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    touch-action: manipulation;
+}
+
+.utility-btn[aria-pressed="true"] {
+    color: #00ffcc;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+}
+
 .neon-btn:hover,
 .neon-btn:focus {
     background: rgba(0, 255, 204, 0.2);
     box-shadow: 0 0 20px rgba(0, 255, 204, 0.35);
-    outline: none;
     transform: scale(1.04);
+}
+
+.neon-btn:focus-visible,
+.utility-btn:focus-visible,
+#initials-input:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
 }
 
 .neon-btn:active {
@@ -426,30 +560,36 @@ kbd {
     line-height: 1.6;
 }
 
-/* Portrait mode rotation prompt */
+/* Portrait recommendation — never blocks play */
 #rotate-prompt {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #0a0a12;
-    z-index: 9999;
-    flex-direction: column;
+    top: max(8px, env(safe-area-inset-top));
+    left: 50%;
+    z-index: 30;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    padding: 7px 12px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(255, 0, 255, 0.45);
+    border-radius: 999px;
+    background: rgba(10, 10, 18, 0.88);
+    box-shadow: 0 0 16px rgba(255, 0, 255, 0.2);
     color: #8888aa;
     font-family: 'Courier New', monospace;
     text-align: center;
-    gap: 16px;
+    gap: 8px;
+    pointer-events: none;
 }
 
 #rotate-prompt .rotate-icon {
-    font-size: 48px;
+    font-size: 18px;
     animation: rotateHint 2s ease-in-out infinite;
     color: #ff00ff;
-    text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
 }
 
 @keyframes rotateHint {
@@ -458,13 +598,14 @@ kbd {
 }
 
 #rotate-prompt p {
-    font-size: 14px;
-    letter-spacing: 3px;
+    font-size: 10px;
+    letter-spacing: 1px;
     text-transform: uppercase;
 }
 
 #rotate-prompt .rotate-sub {
-    font-size: 11px;
+    display: none;
+    font-size: 9px;
     color: #555566;
     letter-spacing: 1px;
 }
@@ -495,7 +636,7 @@ kbd {
     #start-screen h1,
     #game-over-screen h1,
     #pause-screen h1 {
-        font-size: 28px;
+        font-size: clamp(22px, 5.5cqw, 34px);
         margin-bottom: 10px;
         letter-spacing: 4px;
     }
@@ -503,7 +644,7 @@ kbd {
     #start-screen p,
     #game-over-screen p,
     #pause-screen p {
-        font-size: 13px;
+        font-size: clamp(10px, 1.75cqw, 14px);
     }
 
     .start-prompt {
@@ -511,8 +652,8 @@ kbd {
     }
 
     .neon-btn {
-        font-size: 18px;
-        padding: 14px 36px;
+        font-size: clamp(13px, 2.25cqw, 18px);
+        padding: clamp(10px, 2cqh, 14px) clamp(22px, 4.5cqw, 36px);
         min-height: 48px;
     }
 
@@ -521,7 +662,7 @@ kbd {
     }
 
     #score-display {
-        font-size: 14px;
+        font-size: clamp(11px, 1.75cqw, 14px);
         top: 8px;
         right: 54px;
     }
@@ -535,15 +676,10 @@ kbd {
     }
 }
 
-/* Portrait mode on mobile — show rotate prompt */
+/* Portrait mode on mobile — recommend landscape without blocking play */
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
     #rotate-prompt {
         display: flex;
-    }
-
-    #game-container {
-        opacity: 0;
-        pointer-events: none;
     }
 }
 
@@ -551,11 +687,33 @@ kbd {
 @media (max-width: 480px) and (orientation: portrait) {
     #start-screen h1,
     #game-over-screen h1 {
-        font-size: 22px;
+        font-size: clamp(18px, 5.5cqw, 24px);
         letter-spacing: 3px;
     }
 
     .leaderboard-table {
         font-size: 11px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    #rotate-prompt .rotate-icon {
+        transform: rotate(45deg);
+    }
+
+    .neon-btn:hover,
+    .neon-btn:focus,
+    .neon-btn:active,
+    #pause-btn-mobile:active {
+        transform: none;
     }
 }

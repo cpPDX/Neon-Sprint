@@ -2,29 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Neon Sprint</title>
     <link rel="stylesheet" href="stylesheet.css">
 </head>
 <body>
-    <div id="rotate-prompt">
+    <aside id="rotate-prompt" aria-hidden="true">
         <div class="rotate-icon">&#8635;</div>
-        <p>Rotate your device</p>
-        <p class="rotate-sub">Neon Sprint plays best in landscape</p>
-    </div>
-    <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="350"></canvas>
+        <p>Landscape recommended</p>
+        <p class="rotate-sub">Portrait play is supported</p>
+    </aside>
+    <main id="game-container">
+        <canvas
+            id="gameCanvas"
+            width="800"
+            height="350"
+            tabindex="0"
+            role="img"
+            aria-label="Neon Sprint game. Use Space or Up Arrow to jump, Down Arrow to slide, X or K to shoot, and Escape to pause."
+        ></canvas>
         <div id="ui-overlay">
             <div id="score-display">SCORE 000000</div>
-            <div id="start-screen">
-                <h1>Neon Sprint</h1>
+            <section id="start-screen" aria-labelledby="game-title">
+                <h1 id="game-title">Neon Sprint</h1>
                 <div class="title-line"></div>
                 <p class="title-tagline">// FIRMWARE v0.x &mdash; SIDE EFFECTS MAY INCLUDE ADRENALINE OVERFLOW</p>
                 <p class="title-tagline">// AN UNSANCTIONED SPRINT THROUGH THE CORPORATE FIREWALL</p>
                 <p class="title-tagline">// RUNTIME: UNTIL_YOU_FLATLINE()</p>
                 <div class="controls-desktop">
                     <p><kbd>Space</kbd> / <kbd>Up</kbd> Jump &nbsp;&middot;&nbsp; <kbd>Down</kbd> Slide</p>
-                    <p><kbd>Tab</kbd> Shoot &nbsp;&middot;&nbsp; <kbd>Esc</kbd> Pause</p>
+                    <p><kbd>X</kbd> / <kbd>K</kbd> Shoot &nbsp;&middot;&nbsp; <kbd>Esc</kbd> Pause</p>
                 </div>
                 <div class="controls-mobile">
                     <p>Left top = Jump &nbsp;&middot;&nbsp; Left bottom = Slide</p>
@@ -32,11 +39,11 @@
                 </div>
                 <div id="start-leaderboard" class="leaderboard-container"></div>
                 <p class="title-credit">Created by Chris Phelan &middot; An experiment with Claude Code</p>
-                <p class="start-prompt start-prompt-desktop">Press any key to start</p>
-                <p class="start-prompt start-prompt-mobile">Tap to start</p>
-            </div>
-            <div id="game-over-screen" class="hidden">
-                <h1>Flatlined</h1>
+                <button id="start-btn" class="neon-btn start-action" type="button">Start Run</button>
+            </section>
+            <section id="game-over-screen" class="hidden" aria-labelledby="game-over-title">
+                <h1 id="game-over-title">Flatlined</h1>
+                <p id="death-reason" role="status"></p>
                 <p id="final-score"></p>
                 <div id="game-over-stats">
                     <div class="stat-item">
@@ -54,19 +61,65 @@
                 </div>
                 <p id="high-score"></p>
                 <div id="game-over-leaderboard" class="leaderboard-container"></div>
-                <p class="start-prompt start-prompt-desktop">Press any key to jack back in</p>
-                <p class="start-prompt start-prompt-mobile">Tap to jack back in</p>
-            </div>
-            <div id="pause-screen" class="hidden">
-                <h1>Paused</h1>
+                <button id="restart-btn" class="neon-btn start-action" type="button">Run Again</button>
+            </section>
+            <section
+                id="pause-screen"
+                class="hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="pause-title"
+            >
+                <h1 id="pause-title">Paused</h1>
                 <p id="pause-score"></p>
                 <div class="pause-buttons">
-                    <button id="resume-btn" class="neon-btn">Resume</button>
-                    <button id="quit-btn" class="neon-btn neon-btn-quit">Quit</button>
+                    <button id="resume-btn" class="neon-btn" type="button">Resume</button>
+                    <button id="quit-btn" class="neon-btn neon-btn-quit" type="button">Quit</button>
                 </div>
-            </div>
+            </section>
+            <section
+                id="unlock-dialog"
+                class="modal-screen hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="unlock-title"
+                aria-describedby="unlock-description"
+            >
+                <div class="modal-panel">
+                    <h2 id="unlock-title"></h2>
+                    <div id="unlock-description"></div>
+                    <button id="unlock-confirm-btn" class="neon-btn" type="button">Continue</button>
+                </div>
+            </section>
+            <section
+                id="initials-dialog"
+                class="modal-screen hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="initials-title"
+            >
+                <form id="initials-form" class="modal-panel">
+                    <h2 id="initials-title">New High Score</h2>
+                    <p id="initials-death-reason" class="death-reason"></p>
+                    <label for="initials-input">Enter three initials</label>
+                    <input
+                        id="initials-input"
+                        name="initials"
+                        type="text"
+                        inputmode="text"
+                        autocomplete="off"
+                        autocapitalize="characters"
+                        maxlength="3"
+                        pattern="[A-Za-z]{3}"
+                        required
+                        aria-describedby="initials-help"
+                    >
+                    <p id="initials-help">Letters only</p>
+                    <button class="neon-btn" type="submit">Save Score</button>
+                </form>
+            </section>
         </div>
-        <div id="touch-controls" class="hidden">
+        <div id="touch-controls" class="hidden" aria-hidden="true">
             <div id="touch-zone-jump">
                 <span class="touch-label">JUMP</span>
             </div>
@@ -77,8 +130,13 @@
                 <span class="touch-label">SHOOT</span>
             </div>
         </div>
-        <button id="pause-btn-mobile" class="hidden" aria-label="Pause">&#10074;&#10074;</button>
-    </div>
+        <button id="pause-btn-mobile" class="hidden" type="button" aria-label="Pause">&#10074;&#10074;</button>
+        <div id="feedback-controls" role="group" aria-label="Feedback settings">
+            <button id="sound-toggle" class="utility-btn" type="button" aria-pressed="true">Sound On</button>
+            <button id="haptics-toggle" class="utility-btn" type="button" aria-pressed="true">Haptics On</button>
+        </div>
+    </main>
+    <script src="game-core.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
